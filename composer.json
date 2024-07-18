@@ -10,7 +10,7 @@
             "email": "qadeer@alifpakistan.com"
         }
     ],
-    "minimum-stability": "dev",
+    "minimum-stability": "stable",
     "require": {
         "php": "^7.0 || ^8.0",
         "magento/framework": "^102.0 || ^103.0"
