@@ -1,0 +1,20 @@
+<?xml version="1.0" ?>
+<config xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="urn:magento:module:Magento_Store:etc/config.xsd">
+    <default>
+        <payment>
+            <alifshop>
+                <active>1</active>
+                <model>AlifShop\AlifShop\Model\Payment\AlifShop</model>
+                <payment_action>authorize</payment_action>
+                <order_status>pending</order_status>
+                <title>AlifShop</title>
+                <allowspecific>0</allowspecific>
+                <group>offline</group>
+                <instructions></instructions>
+                <api_endpoint>https://gateway.dev.aliftech.pk/b/cashbox</api_endpoint>
+                <order_success_url>/checkout/onepage/success/</order_success_url>
+                <cashbox_token></cashbox_token>
+            </alifshop>
+        </payment>
+    </default>
+</config>

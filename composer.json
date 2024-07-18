@@ -1,0 +1,26 @@
+{
+    "name": "alifshop/module-alifshop",
+    "version": "1.0.0",
+    "description": "AlifShop payment method",
+    "type": "magento2-module",
+    "license": "GPL-3.0",
+    "authors": [
+        {
+            "name": "alifpakistan",
+            "email": "qadeer@alifpakistan.com"
+        }
+    ],
+    "minimum-stability": "dev",
+    "require": {
+        "php": "^7.0 || ^8.0",
+        "magento/framework": "^102.0 || ^103.0"
+    },
+    "autoload": {
+        "files": [
+            "registration.php"
+        ],
+        "psr-4": {
+            "AlifShop\\AlifShop\\": ""
+        }
+    }
+}

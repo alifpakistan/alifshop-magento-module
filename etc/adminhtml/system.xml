@@ -1,0 +1,32 @@
+<?xml version="1.0" ?>
+<config xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="urn:magento:module:Magento_Config:etc/system_file.xsd">
+	<system>
+		<section id="payment" sortOrder="1000" showInWebsite="1" showInStore="1" showInDefault="1" translate="label">
+			<group id="alifshop" sortOrder="10" showInWebsite="1" showInStore="1" showInDefault="1" translate="label">
+				<label>AlifShop</label>
+				<field id="version" type="text" sortOrder="20" showInWebsite="1" showInStore="1" showInDefault="1" translate="label">
+					<label>Module Version</label>
+					<frontend_model>AlifShop\AlifShop\Block\System\Config\Form\Field\Disable</frontend_model>
+					<backend_model>AlifShop\AlifShop\Block\Adminhtml\System\Config\VersionInfo</backend_model>
+				</field>
+				<field id="active" type="select" sortOrder="10" showInWebsite="1" showInStore="1" showInDefault="1" translate="label">
+					<label>Enabled</label>
+					<source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
+				</field>
+				<field id="api_endpoint" type="text" sortOrder="20" showInWebsite="1" showInStore="1" showInDefault="1" translate="label">
+					<label>API Endpoint</label>
+				</field>
+				<field id="cashbox_token" type="password" sortOrder="20" showInWebsite="1" showInStore="1" showInDefault="1" translate="label">
+					<label>Cashbox Token</label>
+				</field>
+				<field id="order_success_url" type="text" sortOrder="20" showInWebsite="1" showInStore="1" showInDefault="1" translate="label">
+					<label>Order Success URL</label>
+					<comment>default route should be "/checkout/onepage/success/" or place if you have any custom.</comment>
+				</field>
+				<field id="instructions" type="textarea" sortOrder="70" showInWebsite="1" showInStore="1" showInDefault="1" translate="label">
+					<label>Instructions</label>
+				</field>
+			</group>
+		</section>
+	</system>
+</config>
