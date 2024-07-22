@@ -1,33 +1,52 @@
 <?php
 
+declare(strict_types=1);
+
 namespace AlifShop\AlifShop\Observer;
 
 use Magento\Framework\Event\Observer;
 use Magento\Framework\Event\ObserverInterface;
 use Magento\Checkout\Model\Session as CheckoutSession;
-use Magento\Framework\App\Response\RedirectInterface;
+use Magento\Framework\App\ResponseInterface;
+use Magento\Framework\Exception\NoSuchEntityException;
 
 class RedirectAfterOrder implements ObserverInterface
 {
-    protected $checkoutSession;
-    protected $redirect;
+    /**
+     * @var CheckoutSession
+     */
+    private CheckoutSession $checkoutSession;
 
+    /**
+     * @var ResponseInterface
+     */
+    private ResponseInterface $response;
+
+    /**
+     * @param CheckoutSession $checkoutSession
+     * @param ResponseInterface $response
+     */
     public function __construct(
         CheckoutSession $checkoutSession,
-        RedirectInterface $redirect
+        ResponseInterface $response
     ) {
         $this->checkoutSession = $checkoutSession;
-        $this->redirect = $redirect;
+        $this->response = $response;
     }
 
-    public function execute(Observer $observer)
+    /**
+     * Execute observer
+     *
+     * @param Observer $observer
+     * @return void
+     * @throws NoSuchEntityException
+     */
+    public function execute(Observer $observer): void
     {
         $redirectUrl = $this->checkoutSession->getRedirectUrl();
         if ($redirectUrl) {
             $this->checkoutSession->unsRedirectUrl();
-            // $observer->getControllerAction()->getResponse()->setRedirect($redirectUrl);
-            header('Location: ' . $redirectUrl);
-            exit;
+            $this->response->setRedirect($redirectUrl);
         }
     }
 }

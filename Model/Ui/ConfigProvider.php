@@ -3,28 +3,30 @@
 namespace AlifShop\AlifShop\Model\Ui;
 
 use Magento\Checkout\Model\ConfigProviderInterface;
-use Magento\Payment\Helper\Data as PaymentHelper;
+use AlifShop\AlifShop\Helper\Data as AlifShopHelper;
 use Magento\Framework\App\Config\ScopeConfigInterface;
 use Magento\Framework\HTTP\Client\Curl;
 
 class ConfigProvider implements ConfigProviderInterface
 {
     protected $methodCode = 'alifshop';
-    protected Curl $curl;
     protected $scopeConfig;
+    protected $curl;
+    protected $_helper;
 
     public function __construct(
         ScopeConfigInterface $scopeConfig,
-        Curl $curl
+        Curl $curl,
+        AlifShopHelper $_helper,
     ) {
         $this->scopeConfig = $scopeConfig;
         $this->curl = $curl;
+        $this->_helper = $_helper;
     }
 
-    public function getConfig()
-    {
+    public function getConfig() {
         $instructions = $this->scopeConfig->getValue('payment/alifshop/instructions', \Magento\Store\Model\ScopeInterface::SCOPE_STORE);
-        $minOrderTotal = 50;
+        $minOrderTotal = $this->getMinOrderTotal();
 
         return [
             'payment' => [
@@ -62,10 +64,10 @@ class ConfigProvider implements ConfigProviderInterface
     }
 
     protected function getApiEndpoint() {
-        return $this->scopeConfig->getValue('payment/alifshop/api_endpoint', \Magento\Store\Model\ScopeInterface::SCOPE_STORE);
+        return $this->_helper->getAlifShopConfig("api_endpoint");
     }
 
     protected function getCashboxToken() {
-        return $this->scopeConfig->getValue('payment/alifshop/cashbox_token', \Magento\Store\Model\ScopeInterface::SCOPE_STORE);
+        return $this->_helper->getAlifShopConfig("cashbox_token");
     }
 }

@@ -2,6 +2,7 @@
 
 namespace AlifShop\AlifShop\Helper;
 
+use Magento\Framework\App\Config\ScopeConfigInterface;
 use Magento\Framework\UrlInterface;
 use Magento\Store\Model\StoreManagerInterface;
 use Magento\Framework\Component\ComponentRegistrar;
@@ -10,27 +11,30 @@ use Magento\Framework\Exception\FileSystemException;
 class Data
 {
     const MODULE_NAME = "AlifShop_AlifShop";
-
-    /**
-     * @var UrlInterface
-     */
+    protected const ALIFSHOP_CONFIG_PATH = "payment/alifshop/";
     protected $urlBuilder;
-
-    private $storeManager;
-
+    protected $storeManager;
     protected $composerJsonPath;
+    protected $scopeConfig;
 
     public function __construct(
         ComponentRegistrar $componentRegistrar,
         UrlInterface $urlBuilder,
-        StoreManagerInterface $storeManager
+        StoreManagerInterface $storeManager,
+        ScopeConfigInterface $scopeConfig,
     ) {
         $this->storeManager = $storeManager;
         $this->urlBuilder = $urlBuilder;
+        $this->scopeConfig = $scopeConfig;
         $moduleDir = $componentRegistrar->getPath(ComponentRegistrar::MODULE, self::MODULE_NAME);
         $this->composerJsonPath = $moduleDir . '/composer.json';
     }
 
+    /**
+     * Get Module current Composer version
+     *
+     * @return string
+     */
     public function getVersionInfo()
     {
         $version = 'N/A';
@@ -54,18 +58,35 @@ class Data
         return $this->composerJsonPath;
     }
 
+    /**
+     * Get Current store currency store
+     *
+     * @return string
+     */
     public function getCurrentCurrencyCode()
     {
         return $this->storeManager->getStore()->getBaseCurrencyCode();
     }
 
     /**
-     * Get Base URL
+     * Get Store Base URL
      *
      * @return string
      */
     public function getBaseUrl()
     {
         return $this->urlBuilder->getBaseUrl();
+    }
+
+    /**
+     * Get AlifShop Configuration values
+     *
+     * @return string
+     */
+    public function getAlifShopConfig($fieldName) {
+        return $this->scopeConfig->getValue(
+            self::ALIFSHOP_CONFIG_PATH . $fieldName,
+            \Magento\Store\Model\ScopeInterface::SCOPE_STORE
+        );
     }
 }

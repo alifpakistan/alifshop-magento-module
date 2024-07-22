@@ -24,7 +24,10 @@
 					<comment>default route should be "/checkout/onepage/success/" or place if you have any custom.</comment>
 				</field>
 				<field id="instructions" type="textarea" sortOrder="70" showInWebsite="1" showInStore="1" showInDefault="1" translate="label">
-					<label>Instructions</label>
+					<label>Checkout Instructions</label>
+				</field>
+				<field id="product_page_installement_instructions" type="textarea" sortOrder="70" showInWebsite="1" showInStore="1" showInDefault="1" translate="label">
+					<label>Product Page Installment Instructions</label>
 				</field>
 			</group>
 		</section>
