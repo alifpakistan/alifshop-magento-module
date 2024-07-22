@@ -7,6 +7,8 @@ use Magento\Framework\UrlInterface;
 use Magento\Store\Model\StoreManagerInterface;
 use Magento\Framework\Component\ComponentRegistrar;
 use Magento\Framework\Exception\FileSystemException;
+use Magento\CatalogRule\Model\ResourceModel\Rule;
+use Magento\Customer\Model\Session as CustomerSession;
 
 class Data
 {
@@ -16,16 +18,22 @@ class Data
     protected $storeManager;
     protected $composerJsonPath;
     protected $scopeConfig;
+    protected $ruleResource;
+    protected $customerSession;
 
     public function __construct(
         ComponentRegistrar $componentRegistrar,
         UrlInterface $urlBuilder,
+        Rule $ruleResource,
+        CustomerSession $customerSession,
         StoreManagerInterface $storeManager,
         ScopeConfigInterface $scopeConfig,
     ) {
         $this->storeManager = $storeManager;
         $this->urlBuilder = $urlBuilder;
         $this->scopeConfig = $scopeConfig;
+        $this->ruleResource = $ruleResource;
+        $this->customerSession = $customerSession;
         $moduleDir = $componentRegistrar->getPath(ComponentRegistrar::MODULE, self::MODULE_NAME);
         $this->composerJsonPath = $moduleDir . '/composer.json';
     }
@@ -88,5 +96,25 @@ class Data
             self::ALIFSHOP_CONFIG_PATH . $fieldName,
             \Magento\Store\Model\ScopeInterface::SCOPE_STORE
         );
+    }
+
+    /**
+     * Check if any discount is applied on the product
+     *
+     * @return boolean
+     */
+    public function hasCatalogPriceRule($product) {
+        $websiteId = $this->storeManager->getStore()->getWebsiteId();
+        $customerGroupId = $this->customerSession->getCustomerGroupId();
+        $productId = $product->getId();
+
+        $rulePrice = $this->ruleResource->getRulePrice(
+            new \DateTime(),
+            $websiteId,
+            $customerGroupId,
+            $productId
+        );
+
+        return $rulePrice !== false;
     }
 }

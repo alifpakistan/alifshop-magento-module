@@ -14,6 +14,7 @@
                 <api_endpoint>https://gateway.dev.aliftech.pk/b/cashbox</api_endpoint>
                 <order_success_url>/checkout/onepage/success/</order_success_url>
                 <cashbox_token></cashbox_token>
+                <product_page_installement_instructions>Pay in 3 installments of </product_page_installement_instructions>
             </alifshop>
         </payment>
     </default>

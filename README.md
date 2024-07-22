@@ -24,7 +24,7 @@
 
 ## Configuration
 
- - AlifShop - payment/alifshop/*
+ - In Magento Admin go to `STORES > Configuration > SALES > Payment Methods > OTHER PAYMENT METHODS > AlifShop` and set your Alif Shop token in `Cashbox Token` Field and then press `Save Config` 
 
 
 ## Specifications

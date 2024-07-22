@@ -1,5 +1,32 @@
-<?php if($block->getProduct() && $block->getInstallmentInfo()): ?>
+<?php if($block->canShowBlock()): ?>
+
+<?php
+$imagePath = $block->getLogoUrl();
+$installmentText = $block->getInstallmentInfo();
+$installmentAmount = $block->getInstallmentAmount();
+?>
+
+<style>
+    .alifshop-installment-text {
+        font-weight: 600;
+    }
+
+    .alifshop-installment-text {
+        padding-top: 10px;
+    }
+
+    .alifshop-installment-amount {
+        color: green;
+    }
+</style>
+
 <div class="installment-block">
-    <p><?php echo $block->getInstallmentInfo(); ?></p>
+    <img class="alifshop-logo" src="<?= $escaper->escapeUrl($imagePath) ?>" alt="Alif Shop Logo" />
+    <br/>
+    <p class="alifshop-installment-text">
+        <?=  $installmentText . " " ?>
+        <span class="alifshop-installment-amount"><?= $installmentAmount; ?></span>
+    </p>
 </div>
+
 <?php endif; ?>
