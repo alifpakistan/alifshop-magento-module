@@ -5,7 +5,7 @@
             <block class="AlifShop\AlifShop\Block\Product\View\InstallmentBlock" 
                    name="product.info.installment_block" 
                    template="AlifShop_AlifShop::product/view/installment_block.phtml" 
-                   after="product.info.addtocart"/>
+                   after="product.info.price"/>
         </referenceContainer>
     </body>
 </page>
