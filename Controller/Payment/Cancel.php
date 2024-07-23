@@ -5,28 +5,27 @@ namespace AlifShop\AlifShop\Controller\Payment;
 use Magento\Framework\App\Action\Action;
 use Magento\Framework\App\Action\Context;
 use Magento\Framework\Controller\Result\JsonFactory;
-use Magento\Sales\Model\Order;
 use Magento\Sales\Model\OrderFactory;
 use Magento\Framework\App\CsrfAwareActionInterface;
 use Magento\Framework\App\RequestInterface;
 use Magento\Framework\App\Request\InvalidRequestException;
-use Magento\Framework\App\Config\ScopeConfigInterface;
+use AlifShop\AlifShop\Helper\Data as AlifShopHelper;
 
 class Cancel extends Action implements CsrfAwareActionInterface
 {
     protected $resultJsonFactory;
     protected $orderFactory;
-    protected $scopeConfig;
+    protected $_helper;
 
     public function __construct(
         Context $context,
         JsonFactory $resultJsonFactory,
         OrderFactory $orderFactory,
-        ScopeConfigInterface $scopeConfig
+        AlifShopHelper $_helper
     ) {
         $this->resultJsonFactory = $resultJsonFactory;
         $this->orderFactory = $orderFactory;
-        $this->scopeConfig = $scopeConfig;
+        $this->_helper = $_helper;
         parent::__construct($context);
     }
 
@@ -42,10 +41,9 @@ class Cancel extends Action implements CsrfAwareActionInterface
 
     protected function verifyToken($token)
     {
-        $secretToken = $this->scopeConfig->getValue('alifshop/webhook_secret', \Magento\Store\Model\ScopeInterface::SCOPE_STORE);
-        return $token === $secretToken;
+        $cashboxToken = $this->_helper->getAlifShopConfig("cashbox_token");
+        return $token === $cashboxToken;
     }
-
     public function execute()
     {
         $result = $this->resultJsonFactory->create();
