@@ -31,9 +31,3 @@
 
  - Payment Method
 	- AlifShop
-
-
-## Attributes
-
-
-
