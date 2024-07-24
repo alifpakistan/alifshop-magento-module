@@ -9,6 +9,9 @@ use Magento\Framework\Component\ComponentRegistrar;
 use Magento\Framework\Exception\FileSystemException;
 use Magento\CatalogRule\Model\ResourceModel\Rule;
 use Magento\Customer\Model\Session as CustomerSession;
+use Magento\Catalog\Api\ProductRepositoryInterface;
+use Magento\Catalog\Helper\Image as ImageHelper;
+use Psr\Log\LoggerInterface;
 
 class Data
 {
@@ -20,6 +23,9 @@ class Data
     protected $scopeConfig;
     protected $ruleResource;
     protected $customerSession;
+    protected $productRepository;
+    protected $imageHelper;
+    protected $logger;
 
     public function __construct(
         ComponentRegistrar $componentRegistrar,
@@ -28,12 +34,18 @@ class Data
         CustomerSession $customerSession,
         StoreManagerInterface $storeManager,
         ScopeConfigInterface $scopeConfig,
+        ProductRepositoryInterface $productRepository,
+        ImageHelper $imageHelper,
+        LoggerInterface $logger
     ) {
         $this->storeManager = $storeManager;
         $this->urlBuilder = $urlBuilder;
         $this->scopeConfig = $scopeConfig;
         $this->ruleResource = $ruleResource;
         $this->customerSession = $customerSession;
+        $this->productRepository = $productRepository;
+        $this->imageHelper = $imageHelper;
+        $this->logger = $logger;
         $moduleDir = $componentRegistrar->getPath(ComponentRegistrar::MODULE, self::MODULE_NAME);
         $this->composerJsonPath = $moduleDir . '/composer.json';
     }
@@ -87,6 +99,17 @@ class Data
     }
 
     /**
+     * Get endpoint's Store URL
+     *
+     * @return string
+     */
+    public function getStoreUrl($endpoint)
+    {
+        $endpoint = ltrim($endpoint, '/');
+        return $this->urlBuilder->getUrl($endpoint);
+    }
+
+    /**
      * Get AlifShop Configuration values
      *
      * @return string
@@ -116,5 +139,32 @@ class Data
         );
 
         return $rulePrice !== false;
+    }
+
+    /**
+     * Get Product Image URL from Order Item
+     *
+     * @return string
+     */
+    public function getOrderItemImageUrl($orderItem)
+    {
+        try {
+            $product = $this->productRepository->getById($orderItem->getProductId());
+            
+            // Check if the product has an image
+            $imageFile = $product->getImage();
+            
+            if ($imageFile && $imageFile != 'no_selection') {
+                $imageUrl = $this->imageHelper->init($product, 'product_thumbnail_image')
+                    ->setImageFile($imageFile)
+                    ->getUrl();
+            } else {
+                $imageUrl = null;
+            }
+            
+            return $imageUrl;
+        } catch (\Exception $e) {
+            return null;
+        }
     }
 }

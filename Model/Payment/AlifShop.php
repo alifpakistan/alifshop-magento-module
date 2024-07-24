@@ -169,6 +169,7 @@ class AlifShop extends AbstractMethod
             $data['items'][] = [
                 'item_id' => $item->getProductId(),
                 'product_id' => $item->getProductId(),
+                'img_url' => $this->_helper->getOrderItemImageUrl($item),
                 'name' => $item->getName(),
                 'quantity' => $item->getQtyOrdered(),
                 'price' => $item->getPrice() * 100,
@@ -192,10 +193,10 @@ class AlifShop extends AbstractMethod
 
         $apiPayload = [
             ...$orderData,
-            "callback_url" => $this->_helper->getBaseUrl() . $orderSuccessUrl,
-            "success_url" => $this->_helper->getBaseUrl() . "/alifshop/payment/approve",
-            "fail_url" => $this->_helper->getBaseUrl() . "/alifshop/payment/cancel",
-            "return_url" => $this->_helper->getBaseUrl() . $orderSuccessUrl,
+            "callback_url" => $this->_helper->getStoreUrl($orderSuccessUrl),
+            "success_url" => $this->_helper->getStoreUrl("alifshop/payment/approve"),
+            "fail_url" => $this->_helper->getStoreUrl("alifshop/payment/cancel"),
+            "return_url" => $this->_helper->getStoreUrl($orderSuccessUrl),
             "source" => "magento",
             "plugin_version" => $this->_helper->getVersionInfo()
         ];
