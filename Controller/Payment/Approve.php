@@ -60,9 +60,13 @@ class Approve extends Action implements CsrfAwareActionInterface
             $order = $this->orderFactory->create()->loadByIncrementId($orderId);
 
             if ($order->getId()) {
-                $order->setState(Order::STATE_PROCESSING)
+                
+                $order
+                    ->setState(Order::STATE_PROCESSING)
                     ->setStatus(Order::STATE_PROCESSING)
                     ->save();
+
+                $this->_helper->addCommentToOrder($order, 'Payment approved by AlifShop.');
 
                 return $result->setData(['success' => true, 'message' => __('Order has been approved and is now processing.')]);
             }

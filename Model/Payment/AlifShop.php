@@ -8,14 +8,14 @@ declare(strict_types=1);
 namespace AlifShop\AlifShop\Model\Payment;
 
 use Magento\Payment\Model\Method\AbstractMethod;
-use Magento\Sales\Model\Order\Payment\Transaction;
-use Magento\Framework\DataObject;
 use Magento\Checkout\Model\Session as CheckoutSession;
 use Magento\Sales\Api\Data\OrderInterface;
 use Magento\Framework\Exception\LocalizedException;
 use Magento\Framework\HTTP\Client\Curl;
 use Magento\Framework\App\Config\ScopeConfigInterface;
 use AlifShop\AlifShop\Helper\Data as AlifShopHelper;
+use Magento\Catalog\Model\ProductRepository;
+use Magento\ConfigurableProduct\Model\Product\Type\Configurable;
 
 class AlifShop extends AbstractMethod
 {
@@ -27,6 +27,8 @@ class AlifShop extends AbstractMethod
     protected Curl $curl;
     protected ScopeConfigInterface $scopeConfig;
     protected AlifShopHelper $_helper;
+    protected $productRepository;
+    protected $configurableType;
 
     public function __construct(
         \Magento\Framework\Model\Context $context,
@@ -40,6 +42,8 @@ class AlifShop extends AbstractMethod
         OrderInterface $order,
         Curl $curl,
         AlifShopHelper $_helper,
+        ProductRepository $productRepository,
+        Configurable $configurableType,
         \Magento\Framework\Model\ResourceModel\AbstractResource $resource = null,
         \Magento\Framework\Data\Collection\AbstractDb $resourceCollection = null,
         array $data = []
@@ -62,6 +66,8 @@ class AlifShop extends AbstractMethod
         $this->curl = $curl;
         $this->scopeConfig = $scopeConfig;
         $this->_helper = $_helper;
+        $this->productRepository = $productRepository;
+        $this->configurableType = $configurableType;
     }
 
     public function isAvailable(\Magento\Quote\Api\Data\CartInterface $quote = null): bool
@@ -88,9 +94,14 @@ class AlifShop extends AbstractMethod
             $apiResponse = $this->makeApiCallToAuthorize($orderData);
 
             if (isset($apiResponse["invoice_id"]) && $apiResponse["invoice_id"]) {
+                
                 // Save transaction details
+                $payment->setIsTransactionPending(true);
+                $payment->setSkipOrderProcessing(true);
                 $payment->setTransactionId($apiResponse['invoice_id']);
-                $payment->setIsTransactionClosed(0);
+                $payment->setIsTransactionClosed(false);
+
+                $this->_helper->addCommentToOrder($order, 'Awaiting payment confirmation from AlifShop.');
 
                 // Save redirect URL in the checkout session
                 $this->checkoutSession->setRedirectUrl($apiResponse['redirect_url']);
@@ -165,23 +176,59 @@ class AlifShop extends AbstractMethod
         ];
 
         foreach ($items as $item) {
-            if(!$item->getPrice()) continue;
+            $product = $item->getProduct();
+            
+            // Skip configurable products
+            if ($product->getTypeId() == Configurable::TYPE_CODE) {
+                continue;
+            }
+            
+            $price = $item->getPrice();
+            $rowTotal = $item->getRowTotal();
+            $parentItem = null;
+
+            // If it's a simple product, check if it has a configurable parent
+            if ($product->getTypeId() == 'simple') {
+                $parentIds = $this->configurableType->getParentIdsByChild($product->getId());
+                if (!empty($parentIds)) {
+                    $parentItem = $this->getParentItem($items, $parentIds[0]);
+                    if ($parentItem && $parentItem->getProductType() == Configurable::TYPE_CODE) {
+                        // Use the price and row total from the parent item
+                        $price = $parentItem->getPrice();
+                        $rowTotal = $parentItem->getRowTotal();
+                    }
+                }
+            }
+
+            // Skip if price is zero
+            if ($price == 0) continue;
+
             $data['items'][] = [
                 'item_id' => $item->getProductId(),
                 'product_id' => $item->getProductId(),
                 'img_url' => $this->_helper->getOrderItemImageUrl($item),
                 'name' => $item->getName(),
                 'quantity' => $item->getQtyOrdered(),
-                'price' => $item->getPrice() * 100,
-                "final_price" => $item->getPrice() * 100,
-                "tax_amount" => $item->getTaxAmount(),
+                'price' => $price * 100,
+                "final_price" => $price * 100,
+                "tax_amount" => floatval($item->getTaxAmount()),
                 "discount" => $item->getDiscountAmount(),
                 "currency_code" => $this->_helper->getCurrentCurrencyCode(),
-                'row_total' => $item->getRowTotal() * 100,
+                'row_total' => $rowTotal * 100,
             ];
         }
 
         return $data;
+    }
+
+    private function getParentItem($items, $parentId)
+    {
+        foreach ($items as $item) {
+            if ($item->getProductId() == $parentId) {
+                return $item;
+            }
+        }
+        return null;
     }
 
     protected function makeApiCallToAuthorize(array $orderData): array

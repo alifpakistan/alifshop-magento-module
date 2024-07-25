@@ -6,6 +6,7 @@ use Magento\Framework\App\Action\Action;
 use Magento\Framework\App\Action\Context;
 use Magento\Framework\Controller\Result\JsonFactory;
 use Magento\Sales\Model\OrderFactory;
+use Magento\Sales\Model\Order;
 use Magento\Framework\App\CsrfAwareActionInterface;
 use Magento\Framework\App\RequestInterface;
 use Magento\Framework\App\Request\InvalidRequestException;
@@ -58,7 +59,11 @@ class Cancel extends Action implements CsrfAwareActionInterface
             $order = $this->orderFactory->create()->loadByIncrementId($orderId);
 
             if ($order->getId()) {
-                $order->cancel()->save();
+                $order->setState(Order::STATE_CANCELED)
+                    ->setStatus(Order::STATE_CANCELED)
+                    ->save();
+
+                $this->_helper->addCommentToOrder($order, 'Payment canceled by AlifShop.');
 
                 return $result->setData(['success' => true, 'message' => __('Order has been canceled.')]);
             }

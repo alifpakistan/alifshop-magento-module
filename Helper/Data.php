@@ -12,6 +12,9 @@ use Magento\Customer\Model\Session as CustomerSession;
 use Magento\Catalog\Api\ProductRepositoryInterface;
 use Magento\Catalog\Helper\Image as ImageHelper;
 use Psr\Log\LoggerInterface;
+use Magento\Sales\Api\OrderRepositoryInterface;
+use Magento\Sales\Api\Data\OrderInterface;
+use Magento\Sales\Api\Data\OrderStatusHistoryInterfaceFactory;
 
 class Data
 {
@@ -26,6 +29,8 @@ class Data
     protected $productRepository;
     protected $imageHelper;
     protected $logger;
+    protected $orderRepository;
+    protected $orderStatusHistoryFactory;
 
     public function __construct(
         ComponentRegistrar $componentRegistrar,
@@ -36,7 +41,9 @@ class Data
         ScopeConfigInterface $scopeConfig,
         ProductRepositoryInterface $productRepository,
         ImageHelper $imageHelper,
-        LoggerInterface $logger
+        LoggerInterface $logger,
+        OrderRepositoryInterface $orderRepository,
+        OrderStatusHistoryInterfaceFactory $orderStatusHistoryFactory
     ) {
         $this->storeManager = $storeManager;
         $this->urlBuilder = $urlBuilder;
@@ -46,6 +53,8 @@ class Data
         $this->productRepository = $productRepository;
         $this->imageHelper = $imageHelper;
         $this->logger = $logger;
+        $this->orderRepository = $orderRepository;
+        $this->orderStatusHistoryFactory = $orderStatusHistoryFactory;
         $moduleDir = $componentRegistrar->getPath(ComponentRegistrar::MODULE, self::MODULE_NAME);
         $this->composerJsonPath = $moduleDir . '/composer.json';
     }
@@ -166,5 +175,22 @@ class Data
         } catch (\Exception $e) {
             return null;
         }
+    }
+
+    /**
+     * Add comment to order
+     *
+     * @return null
+     */
+    public function addCommentToOrder(OrderInterface $order, $comment)
+    {
+        $history = $this->orderStatusHistoryFactory->create();
+        $history->setComment($comment);
+        $history->setEntityName('order');
+        $history->setStatus($order->getStatus());
+        
+        $order->addStatusHistory($history);
+
+        $this->orderRepository->save($order);
     }
 }
