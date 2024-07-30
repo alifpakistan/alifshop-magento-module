@@ -169,8 +169,9 @@ class AlifShop extends AbstractMethod
                 'items_count' => count($items),
                 'items_quantity' => $order->getTotalQtyOrdered(),
                 'subtotal' => $order->getSubtotal() * 100,
-                "currency_code" => $this->_helper->getCurrentCurrencyCode(),
+                'currency_code' => $this->_helper->getCurrentCurrencyCode(),
                 'grand_total' => $order->getGrandTotal() * 100,
+                'shipping_cost' => number_format($order->getShippingAmount(), 2) * 100
             ],
             'items' => [],
         ];
@@ -183,8 +184,8 @@ class AlifShop extends AbstractMethod
                 continue;
             }
             
-            $price = $item->getPrice();
-            $rowTotal = $item->getRowTotal();
+            $price = floatval($item->getPrice());
+            $rowTotal = floatval($item->getRowTotal());
             $parentItem = null;
 
             // If it's a simple product, check if it has a configurable parent
@@ -194,8 +195,8 @@ class AlifShop extends AbstractMethod
                     $parentItem = $this->getParentItem($items, $parentIds[0]);
                     if ($parentItem && $parentItem->getProductType() == Configurable::TYPE_CODE) {
                         // Use the price and row total from the parent item
-                        $price = $parentItem->getPrice();
-                        $rowTotal = $parentItem->getRowTotal();
+                        $price = floatval($parentItem->getPrice());
+                        $rowTotal = floatval($parentItem->getRowTotal());
                     }
                 }
             }
@@ -212,7 +213,7 @@ class AlifShop extends AbstractMethod
                 'price' => $price * 100,
                 "final_price" => $price * 100,
                 "tax_amount" => floatval($item->getTaxAmount()),
-                "discount" => $item->getDiscountAmount(),
+                "discount" => floatval($item->getDiscountAmount()),
                 "currency_code" => $this->_helper->getCurrentCurrencyCode(),
                 'row_total' => $rowTotal * 100,
             ];
