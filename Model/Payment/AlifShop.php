@@ -184,8 +184,12 @@ class AlifShop extends AbstractMethod
                 continue;
             }
 
-            $price = $item->getParentItem()->getPrice();
-            $rowTotal = $item->getParentItem()->getRowTotal();
+            $price = ($item->getParentItem()) 
+                    ? $item->getParentItem()->getPrice()
+                    : $item->getPrice();
+            $rowTotal = ($item->getParentItem()) 
+                    ? $item->getParentItem()->getRowTotal()
+                    : $item->getRowTotal();
             
             $data['items'][] = [
                 'item_id' => $item->getQuoteItemId(),
