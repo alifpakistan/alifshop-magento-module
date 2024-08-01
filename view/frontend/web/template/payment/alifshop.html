@@ -12,16 +12,14 @@
         <!-- ko ifnot: getIsMinOrderValue() -->
         <div aria-atomic="true" role="alert" class="message message-error error">
             <div data-ui-id="checkout-cart-validationmessages-message-error">
-                Minimum Order total threshold not reached. Order value should be greater than <span data-bind="html: getMinOrderValue()"></span>
+                You can avail Pay In Instalments when your shopping is greater than <span data-bind="html: getMinOrderValue()"></span>
             </div>
         </div>
         <!--/ko-->
 
         <!-- ko if: getIsDiscountApplied() -->
         <div aria-atomic="true" role="alert" class="message message-error error">
-            <div data-ui-id="checkout-cart-validationmessages-message-error">
-                You cannot use this payment method with Discounts applied.
-            </div>
+            <div data-ui-id="checkout-cart-validationmessages-message-error" data-bind="html: getDiscountAppliedErrMsg()"></div>
         </div>
         <!--/ko-->
 

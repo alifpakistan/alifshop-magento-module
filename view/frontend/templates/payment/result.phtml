@@ -1,0 +1,67 @@
+<?php
+/** @var \Magento\Framework\View\Element\Template $block */
+/** @var \AlifShop\AlifShop\ViewModel\PaymentResult $viewModel */
+$viewModel = $block->getData('view_model');
+$order = $viewModel->getOrder();
+$isSuccess = $viewModel->isSuccess();
+?>
+
+<?php if ($isSuccess && $order): ?>
+    <div class="order-success">
+        <h1><?= $block->escapeHtml(__('Thank you for placing order with us.')) ?></h1>
+        <h2><?= $block->escapeHtml(__('Your order# is: %1', $viewModel->getIncrementId())) ?></h2>
+        
+        <div class="order-addresses">
+            <?php $shippingAddress = $viewModel->getFormattedShippingAddress($order); ?>
+            <?php if ($shippingAddress): ?>
+                <div class="shipping-address">
+                    <h3><?= $block->escapeHtml(__('Shipping Address')) ?></h3>
+                    <?= $shippingAddress ?>
+                </div>
+            <?php endif; ?>
+
+            <?php $billingAddress = $viewModel->getFormattedBillingAddress($order); ?>
+            <?php if ($billingAddress): ?>
+                <div class="billing-address">
+                    <h3><?= $block->escapeHtml(__('Billing Address')) ?></h3>
+                    <?= $billingAddress ?>
+                </div>
+            <?php endif; ?>
+
+            <?php if (!$shippingAddress && !$billingAddress): ?>
+                <p><?= $block->escapeHtml(__('Address information is not available for this order.')) ?></p>
+            <?php endif; ?>
+        </div>
+    </div>
+<?php elseif (!$isSuccess): ?>
+    <div class="order-failure">
+        <h1><?= $block->escapeHtml(__('Failed to process your transaction, please try again.')) ?></h1>
+    </div>
+<?php else: ?>
+    <div class="order-error">
+        <h2><?= $block->escapeHtml(__('An error occurred. Please try again later.')) ?></h2>
+    </div>
+<?php endif; ?>
+
+<style>
+    .page-title-wrapper {
+        display: none!important;
+    }
+    .order-success, .order-failure, .order-error {
+        padding: 20px;
+    }
+    .order-addresses {
+        display: flex;
+        flex-wrap: wrap;
+        justify-content: space-between;
+    }
+    .shipping-address, .billing-address {
+        width: 48%;
+        margin-bottom: 20px;
+    }
+    @media (max-width: 768px) {
+        .shipping-address, .billing-address {
+            width: 100%;
+        }
+    }
+</style>

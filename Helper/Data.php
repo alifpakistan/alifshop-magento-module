@@ -112,10 +112,10 @@ class Data
      *
      * @return string
      */
-    public function getStoreUrl($endpoint)
+    public function getStoreUrl($endpoint, $params = [])
     {
         $endpoint = ltrim($endpoint, '/');
-        return $this->urlBuilder->getUrl($endpoint);
+        return $this->urlBuilder->getUrl($endpoint, $params);
     }
 
     /**

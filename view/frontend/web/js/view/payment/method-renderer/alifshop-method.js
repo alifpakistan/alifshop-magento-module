@@ -46,9 +46,16 @@ define([
             return totals && (totals.coupon_code || totals.discount_amount !== 0);
         },
 
+        getDiscountAppliedErrMsg: function () {
+            var totals = quote.getTotals()();
+            return (totals.coupon_code)
+                ? "Unable to apply a discount code for Pay In Instalments. Please try again."
+                : "Unable to offer Pay In Instalments for discounted items. Please try again."
+        },
+
         getIconHtml: function () {
-            var iconPath = 'AlifShop_AlifShop/images/alif-shop.svg';
-            return '<img src="' + require.toUrl(iconPath) + '" alt="' + this.getTitle() + '">';
+            var iconPath = 'AlifShop_AlifShop/images/alif-shop-with-text.svg';
+            return '<img width="150" src="' + require.toUrl(iconPath) + '" alt="' + this.getTitle() + '">';
         },
 
         applyCoupon: function (couponCode) {

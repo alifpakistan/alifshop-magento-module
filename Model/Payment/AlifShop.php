@@ -166,7 +166,7 @@ class AlifShop extends AbstractMethod
             ],
             'cart' => [
                 'id' => $order->getQuoteId(),
-                'items_count' => count($items),
+                'items_count' => 0,
                 'items_quantity' => $order->getTotalQtyOrdered(),
                 'subtotal' => $order->getSubtotal() * 100,
                 'currency_code' => $this->_helper->getCurrentCurrencyCode(),
@@ -183,29 +183,12 @@ class AlifShop extends AbstractMethod
             if ($product->getTypeId() == Configurable::TYPE_CODE) {
                 continue;
             }
+
+            $price = $item->getParentItem()->getPrice();
+            $rowTotal = $item->getParentItem()->getRowTotal();
             
-            $price = floatval($item->getPrice());
-            $rowTotal = floatval($item->getRowTotal());
-            $parentItem = null;
-
-            // If it's a simple product, check if it has a configurable parent
-            if ($product->getTypeId() == 'simple') {
-                $parentIds = $this->configurableType->getParentIdsByChild($product->getId());
-                if (!empty($parentIds)) {
-                    $parentItem = $this->getParentItem($items, $parentIds[0]);
-                    if ($parentItem && $parentItem->getProductType() == Configurable::TYPE_CODE) {
-                        // Use the price and row total from the parent item
-                        $price = floatval($parentItem->getPrice());
-                        $rowTotal = floatval($parentItem->getRowTotal());
-                    }
-                }
-            }
-
-            // Skip if price is zero
-            if ($price == 0) continue;
-
             $data['items'][] = [
-                'item_id' => $item->getProductId(),
+                'item_id' => $item->getQuoteItemId(),
                 'product_id' => $item->getProductId(),
                 'img_url' => $this->_helper->getOrderItemImageUrl($item),
                 'name' => $item->getName(),
@@ -219,17 +202,9 @@ class AlifShop extends AbstractMethod
             ];
         }
 
-        return $data;
-    }
+        $data['cart']['items_count'] = count($data['items']);
 
-    private function getParentItem($items, $parentId)
-    {
-        foreach ($items as $item) {
-            if ($item->getProductId() == $parentId) {
-                return $item;
-            }
-        }
-        return null;
+        return $data;
     }
 
     protected function makeApiCallToAuthorize(array $orderData): array
@@ -237,14 +212,16 @@ class AlifShop extends AbstractMethod
         // Get the API endpoint and token from the configuration
         $apiEndpoint = $this->getConfigData('api_endpoint') . "/invoice/web/";
         $cashboxToken = $this->getConfigData('cashbox_token');
-        $orderSuccessUrl = $this->getConfigData('order_success_url');
+        $orderSuccessUrl = $this->_helper->getStoreUrl('alifshop/payment/result', [
+            "order" => base64_encode($orderData['order']['id'])
+        ]);
 
         $apiPayload = [
             ...$orderData,
-            "callback_url" => $this->_helper->getStoreUrl($orderSuccessUrl),
+            "callback_url" => $orderSuccessUrl,
             "success_url" => $this->_helper->getStoreUrl("alifshop/payment/approve"),
             "fail_url" => $this->_helper->getStoreUrl("alifshop/payment/cancel"),
-            "return_url" => $this->_helper->getStoreUrl($orderSuccessUrl),
+            "return_url" => $orderSuccessUrl,
             "source" => "magento",
             "plugin_version" => $this->_helper->getVersionInfo()
         ];
