@@ -3,6 +3,7 @@
 namespace AlifShop\AlifShop\Helper;
 
 use Magento\Framework\App\Config\ScopeConfigInterface;
+use Magento\Framework\App\Config\Storage\WriterInterface;
 use Magento\Framework\UrlInterface;
 use Magento\Store\Model\StoreManagerInterface;
 use Magento\Framework\Component\ComponentRegistrar;
@@ -15,6 +16,7 @@ use Psr\Log\LoggerInterface;
 use Magento\Sales\Api\OrderRepositoryInterface;
 use Magento\Sales\Api\Data\OrderInterface;
 use Magento\Sales\Api\Data\OrderStatusHistoryInterfaceFactory;
+use Magento\Framework\HTTP\Client\Curl;
 
 class Data
 {
@@ -24,6 +26,7 @@ class Data
     protected $storeManager;
     protected $composerJsonPath;
     protected $scopeConfig;
+    protected $configWriter;
     protected $ruleResource;
     protected $customerSession;
     protected $productRepository;
@@ -31,6 +34,7 @@ class Data
     protected $logger;
     protected $orderRepository;
     protected $orderStatusHistoryFactory;
+    protected $curl;
 
     public function __construct(
         ComponentRegistrar $componentRegistrar,
@@ -39,15 +43,18 @@ class Data
         CustomerSession $customerSession,
         StoreManagerInterface $storeManager,
         ScopeConfigInterface $scopeConfig,
+        WriterInterface $configWriter,
         ProductRepositoryInterface $productRepository,
         ImageHelper $imageHelper,
         LoggerInterface $logger,
         OrderRepositoryInterface $orderRepository,
-        OrderStatusHistoryInterfaceFactory $orderStatusHistoryFactory
+        OrderStatusHistoryInterfaceFactory $orderStatusHistoryFactory,
+        Curl $curl,
     ) {
         $this->storeManager = $storeManager;
         $this->urlBuilder = $urlBuilder;
         $this->scopeConfig = $scopeConfig;
+        $this->configWriter = $configWriter;
         $this->ruleResource = $ruleResource;
         $this->customerSession = $customerSession;
         $this->productRepository = $productRepository;
@@ -55,6 +62,7 @@ class Data
         $this->logger = $logger;
         $this->orderRepository = $orderRepository;
         $this->orderStatusHistoryFactory = $orderStatusHistoryFactory;
+        $this->curl = $curl;
         $moduleDir = $componentRegistrar->getPath(ComponentRegistrar::MODULE, self::MODULE_NAME);
         $this->composerJsonPath = $moduleDir . '/composer.json';
     }
@@ -123,10 +131,24 @@ class Data
      *
      * @return string
      */
-    public function getAlifShopConfig($fieldName) {
+    public function getAlifShopConfig($fieldName)
+    {
         return $this->scopeConfig->getValue(
             self::ALIFSHOP_CONFIG_PATH . $fieldName,
             \Magento\Store\Model\ScopeInterface::SCOPE_STORE
+        );
+    }
+
+    /**
+     * Set AlifShop Configuration values
+     *
+     * @return void
+     */
+    public function setAlifShopConfig($fieldName, $fieldVal)
+    {
+        return $this->configWriter->save(
+            self::ALIFSHOP_CONFIG_PATH . $fieldName,
+            $fieldVal
         );
     }
 
@@ -135,7 +157,8 @@ class Data
      *
      * @return boolean
      */
-    public function hasCatalogPriceRule($product) {
+    public function hasCatalogPriceRule($product)
+    {
         $websiteId = $this->storeManager->getStore()->getWebsiteId();
         $customerGroupId = $this->customerSession->getCustomerGroupId();
         $productId = $product->getId();
@@ -159,10 +182,10 @@ class Data
     {
         try {
             $product = $this->productRepository->getById($orderItem->getProductId());
-            
+
             // Check if the product has an image
             $imageFile = $product->getImage();
-            
+
             if ($imageFile && $imageFile != 'no_selection') {
                 $imageUrl = $this->imageHelper->init($product, 'product_thumbnail_image')
                     ->setImageFile($imageFile)
@@ -170,7 +193,7 @@ class Data
             } else {
                 $imageUrl = null;
             }
-            
+
             return $imageUrl;
         } catch (\Exception $e) {
             return null;
@@ -188,9 +211,39 @@ class Data
         $history->setComment($comment);
         $history->setEntityName('order');
         $history->setStatus($order->getStatus());
-        
+
         $order->addStatusHistory($history);
 
         $this->orderRepository->save($order);
+    }
+
+    /**
+     * Update Max Order total value
+     */
+    public function updateMinOrderTotal()
+    {
+        $apiEndpoint = $this->getAlifShopConfig("api_endpoint") . "/merchant";
+        $cashboxToken = $this->getAlifShopConfig("cashbox_token");
+
+        if (!$apiEndpoint && !$cashboxToken)
+            return null;
+
+        $this->curl->addHeader('Content-Type', 'application/json');
+        $this->curl->addHeader('Accept', 'application/json');
+        $this->curl->addHeader('Cashbox-token', $cashboxToken);
+        $this->curl->get($apiEndpoint);
+
+        // Get the response
+        $response = $this->curl->getBody();
+
+        // Convert the response to an array
+        $responseArray = json_decode($response, true);
+
+        $minOrderTotal = (isset($responseArray['min_installment_amount']))
+            ? $responseArray['min_installment_amount']
+            : 0;
+
+        $this->setAlifShopConfig("min_order_total", $minOrderTotal);
+        return;
     }
 }

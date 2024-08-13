@@ -19,6 +19,10 @@
 				<field id="cashbox_token" type="password" sortOrder="20" showInWebsite="1" showInStore="1" showInDefault="1" translate="label">
 					<label>Cashbox Token</label>
 				</field>
+				<field id="min_order_total" type="text" sortOrder="20" showInWebsite="1" showInStore="1" showInDefault="1" translate="label">
+					<label>Minimum Order Total</label>
+					<frontend_model>AlifShop\AlifShop\Block\System\Config\Form\Field\Disable</frontend_model>
+				</field>
 				<field id="order_success_url" type="text" sortOrder="20" showInWebsite="1" showInStore="1" showInDefault="1" translate="label">
 					<label>Order Success URL</label>
 					<comment>default route should be "/checkout/onepage/success/" or place if you have any custom.</comment>

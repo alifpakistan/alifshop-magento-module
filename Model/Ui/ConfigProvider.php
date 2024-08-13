@@ -40,34 +40,10 @@ class ConfigProvider implements ConfigProviderInterface
         ];
     }
 
-    protected function getMinOrderTotal() {
-
-        $apiEndpoint = $this->getApiEndpoint() . "/merchant";
-        $cashboxToken = $this->getCashboxToken();
-
-        if(!$apiEndpoint && !$cashboxToken) return null;
-
-        $this->curl->addHeader('Content-Type', 'application/json');
-        $this->curl->addHeader('Accept', 'application/json');
-        $this->curl->addHeader('Cashbox-token', $cashboxToken);
-        $this->curl->get($apiEndpoint);
-
-        // Get the response
-        $response = $this->curl->getBody();
-
-        // Convert the response to an array
-        $responseArray = json_decode($response, true);
-
-        return (isset($responseArray['min_installment_amount']) && $responseArray['min_installment_amount'])
-                ? $responseArray['min_installment_amount'] / 100
-                : null;
-    }
-
-    protected function getApiEndpoint() {
-        return $this->_helper->getAlifShopConfig("api_endpoint");
-    }
-
-    protected function getCashboxToken() {
-        return $this->_helper->getAlifShopConfig("cashbox_token");
+    protected function getMinOrderTotal()
+    {
+        return ($this->_helper->getAlifShopConfig("min_order_total"))
+            ? $this->_helper->getAlifShopConfig("min_order_total") / 100
+            : 0;
     }
 }

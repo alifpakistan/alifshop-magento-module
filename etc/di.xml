@@ -6,4 +6,8 @@
             <argument name="response" xsi:type="object">Magento\Framework\App\Response\Http</argument>
         </arguments>
     </type>
+
+    <preference 
+        for="Magento\Framework\App\Action\HttpPostActionInterface" type="AlifShop\AlifShop\Controller\Payment\UpdateOrder" 
+    />
 </config>

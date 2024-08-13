@@ -217,15 +217,20 @@ class AlifShop extends AbstractMethod
         $apiEndpoint = $this->getConfigData('api_endpoint') . "/invoice/web/";
         $cashboxToken = $this->getConfigData('cashbox_token');
         $orderSuccessUrl = $this->_helper->getStoreUrl('alifshop/payment/result', [
-            "order" => base64_encode($orderData['order']['id'])
+            "order" => base64_encode($orderData['order']['id']),
+            "success" => 1
+        ]);
+        $orderFailUrl = $this->_helper->getStoreUrl('alifshop/payment/result', [
+            "order" => base64_encode($orderData['order']['id']),
+            "success" => 0
         ]);
 
         $apiPayload = [
             ...$orderData,
-            "callback_url" => $orderSuccessUrl,
-            "success_url" => $this->_helper->getStoreUrl("alifshop/payment/approve"),
-            "fail_url" => $this->_helper->getStoreUrl("alifshop/payment/cancel"),
-            "return_url" => $orderSuccessUrl,
+            "callback_url" => $this->_helper->getStoreUrl("alifshop/payment/updateorder"),
+            "success_url" => $orderSuccessUrl,
+            "fail_url" => $orderFailUrl,
+            "return_url" => $this->_helper->getBaseUrl(),
             "source" => "magento",
             "plugin_version" => $this->_helper->getVersionInfo()
         ];
