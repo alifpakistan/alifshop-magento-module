@@ -12,7 +12,7 @@
                 <group>offline</group>
                 <instructions></instructions>
                 <api_endpoint>https://gateway.dev.aliftech.pk/b/cashbox</api_endpoint>
-                <order_success_url>/checkout/onepage/success/</order_success_url>
+                <min_order_total_ttl>43200</min_order_total_ttl>
                 <cashbox_token></cashbox_token>
                 <product_page_installement_instructions>Pay in 3 instalments of </product_page_installement_instructions>
             </alifshop>

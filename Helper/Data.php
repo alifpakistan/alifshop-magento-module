@@ -17,7 +17,8 @@ use Magento\Sales\Api\OrderRepositoryInterface;
 use Magento\Sales\Api\Data\OrderInterface;
 use Magento\Sales\Api\Data\OrderStatusHistoryInterfaceFactory;
 use Magento\Framework\HTTP\Client\Curl;
-
+use Magento\Framework\App\CacheInterface;
+use Magento\Framework\Serialize\SerializerInterface;
 class Data
 {
     const MODULE_NAME = "AlifShop_AlifShop";
@@ -35,6 +36,8 @@ class Data
     protected $orderRepository;
     protected $orderStatusHistoryFactory;
     protected $curl;
+    protected $cache;
+    protected $serializer;
 
     public function __construct(
         ComponentRegistrar $componentRegistrar,
@@ -50,6 +53,8 @@ class Data
         OrderRepositoryInterface $orderRepository,
         OrderStatusHistoryInterfaceFactory $orderStatusHistoryFactory,
         Curl $curl,
+        CacheInterface $cache,
+        SerializerInterface $serializer,
     ) {
         $this->storeManager = $storeManager;
         $this->urlBuilder = $urlBuilder;
@@ -63,6 +68,8 @@ class Data
         $this->orderRepository = $orderRepository;
         $this->orderStatusHistoryFactory = $orderStatusHistoryFactory;
         $this->curl = $curl;
+        $this->cache = $cache;
+        $this->serializer = $serializer;
         $moduleDir = $componentRegistrar->getPath(ComponentRegistrar::MODULE, self::MODULE_NAME);
         $this->composerJsonPath = $moduleDir . '/composer.json';
     }
@@ -218,32 +225,48 @@ class Data
     }
 
     /**
-     * Update Max Order total value
+     * Get Max Order total value
      */
-    public function updateMinOrderTotal()
+    public function getMinOrderTotal()
     {
+        $cacheKey = 'alifshop_min_order_total';
+        $cachedData = $this->cache->load($cacheKey);
+        $cacheTtl = (int) $this->getAlifShopConfig('min_order_total_ttl') ?? 43200;
+
+        if ($cachedData !== false) {
+            $this->logger->info('sending from cache');
+            return $this->serializer->unserialize($cachedData);
+        }
+
         $apiEndpoint = $this->getAlifShopConfig("api_endpoint") . "/merchant";
         $cashboxToken = $this->getAlifShopConfig("cashbox_token");
 
-        if (!$apiEndpoint && !$cashboxToken)
+        if (!$apiEndpoint || !$cashboxToken) {
             return null;
+        }
 
         $this->curl->addHeader('Content-Type', 'application/json');
         $this->curl->addHeader('Accept', 'application/json');
         $this->curl->addHeader('Cashbox-token', $cashboxToken);
         $this->curl->get($apiEndpoint);
 
-        // Get the response
         $response = $this->curl->getBody();
-
-        // Convert the response to an array
         $responseArray = json_decode($response, true);
 
-        $minOrderTotal = (isset($responseArray['min_installment_amount']))
+        $minOrderTotal = isset($responseArray['min_installment_amount'])
             ? $responseArray['min_installment_amount']
             : 0;
 
-        $this->setAlifShopConfig("min_order_total", $minOrderTotal);
-        return;
+        // Cache the result for 12 hours (43200 seconds)
+        $this->cache->save(
+            $this->serializer->serialize($minOrderTotal),
+            $cacheKey,
+            ['alifshop_cache'],
+            $cacheTtl
+        );
+
+        $this->logger->info('sending from API response');
+
+        return $minOrderTotal;
     }
 }

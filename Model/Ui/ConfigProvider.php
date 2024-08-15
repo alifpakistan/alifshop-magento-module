@@ -42,8 +42,6 @@ class ConfigProvider implements ConfigProviderInterface
 
     protected function getMinOrderTotal()
     {
-        return ($this->_helper->getAlifShopConfig("min_order_total"))
-            ? $this->_helper->getAlifShopConfig("min_order_total") / 100
-            : 0;
+        return $this->_helper->getMinOrderTotal() / 100;
     }
 }
