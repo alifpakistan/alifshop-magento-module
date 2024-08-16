@@ -233,7 +233,7 @@ class Data
         $cachedData = $this->cache->load($cacheKey);
         $cacheTtl = (int) $this->getAlifShopConfig('min_order_total_ttl') ?? 43200;
 
-        if ($cachedData !== false) {
+        if ($cachedData) {
             $this->logger->info('sending from cache');
             return $this->serializer->unserialize($cachedData);
         }
