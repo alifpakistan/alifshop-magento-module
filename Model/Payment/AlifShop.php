@@ -218,11 +218,11 @@ class AlifShop extends AbstractMethod
         $cashboxToken = $this->getConfigData('cashbox_token');
         $orderSuccessUrl = $this->_helper->getStoreUrl('alifshop/payment/result', [
             "order" => base64_encode($orderData['order']['id']),
-            "success" => 1
+            "success" => true
         ]);
         $orderFailUrl = $this->_helper->getStoreUrl('alifshop/payment/result', [
             "order" => base64_encode($orderData['order']['id']),
-            "success" => 0
+            "success" => false
         ]);
 
         $apiPayload = [
