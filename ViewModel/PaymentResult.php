@@ -31,7 +31,7 @@ class PaymentResult implements ArgumentInterface
 
     public function isSuccess()
     {
-        return $this->request->getParam('success') === 'true';
+        return $this->request->getParam('success');
     }
 
     public function getIncrementId()

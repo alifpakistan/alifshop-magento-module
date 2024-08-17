@@ -1,6 +1,6 @@
 {
     "name": "alifshop/module-alifshop",
-    "version": "1.0.11",
+    "version": "1.0.12",
     "description": "AlifShop payment method",
     "type": "magento2-module",
     "license": "GPL-3.0",
