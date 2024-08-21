@@ -43,7 +43,7 @@ define([
 
         getIsDiscountApplied: function () {
             var totals = quote.getTotals()();
-            return totals && (totals.coupon_code || totals.discount_amount !== 0);
+            return (totals && (totals.coupon_code || totals.discount_amount !== 0)) || this.getHasSpecialPrice()
         },
 
         getDiscountAppliedErrMsg: function () {
@@ -51,6 +51,31 @@ define([
             return (totals.coupon_code)
                 ? "Unable to apply a discount code for Pay In Instalments. Please try again."
                 : "Unable to offer Pay In Instalments for discounted items. Please try again."
+        },
+
+        getHasSpecialPrice: function() {
+            var items = quote.getItems();
+        
+            console.log("items:", items)
+            // Check if items exist and are not empty
+            if (!items || items.length === 0) {
+                return false; // No items in the cart
+            }
+        
+            for (var i = 0; i < items.length; i++) {
+                var item = items[i];
+                var product = item.product || item;
+        
+                if (product.special_price && product.hasOwnProperty('special_price')) {
+                    var specialPrice = parseFloat(product.special_price);
+                    var price = parseFloat(product.price);
+        
+                    if (specialPrice < price) {
+                        return true;
+                    }
+                }
+            }
+            return false;
         },
 
         getIconHtml: function () {

@@ -51,6 +51,11 @@ class InstallmentBlock extends Template
         return $this->getFormattedPrice($product->getFinalPrice() / $this->numberOfInstallments);
     }
 
+    public function getIsActive() {
+        $installmentInfo = $this->_helper->getAlifShopConfig("active");
+        return $installmentInfo;
+    }
+
     public function getInstallmentInfo() {
         $installmentInfo = $this->_helper->getAlifShopConfig("product_page_installement_instructions");
         return $installmentInfo;
@@ -58,8 +63,10 @@ class InstallmentBlock extends Template
     
     public function canShowBlock() {
         $product = $this->getProduct();
-        return $this->getProduct() 
+        return $product->getId() 
+            && $this->getIsActive()
             && $this->getInstallmentInfo()
+            && !$this->_helper->hasSpecialPrice($product)
             && !$this->_helper->hasCatalogPriceRule($product);
     }
 

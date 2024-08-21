@@ -181,6 +181,19 @@ class Data
     }
 
     /**
+     * Check if product has special price
+     * 
+     * @return boolean
+     */
+    public function hasSpecialPrice($product) {
+        if (
+            $product->getSpecialPrice() &&
+            $product->getSpecialPrice() < $product->getPrice()
+        ) return true;
+        return false;
+    }
+
+    /**
      * Get Product Image URL from Order Item
      *
      * @return string
