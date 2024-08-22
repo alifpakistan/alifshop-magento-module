@@ -56,7 +56,6 @@ define([
         getHasSpecialPrice: function() {
             var items = quote.getItems();
         
-            console.log("items:", items)
             // Check if items exist and are not empty
             if (!items || items.length === 0) {
                 return false; // No items in the cart
@@ -64,14 +63,17 @@ define([
         
             for (var i = 0; i < items.length; i++) {
                 var item = items[i];
-                var product = item.product || item;
-        
-                if (product.special_price && product.hasOwnProperty('special_price')) {
-                    var specialPrice = parseFloat(product.special_price);
-                    var price = parseFloat(product.price);
-        
-                    if (specialPrice < price) {
-                        return true;
+                if(item.product_type === 'configurable') {
+                    if(parseFloat(item.price) !== parseFloat(item.product.price)) return true;
+                } else {
+                    var product = item.product || item;
+                    if (product.special_price && product.hasOwnProperty('special_price')) {
+                        var specialPrice = parseFloat(product.special_price);
+                        var price = parseFloat(product.price);
+            
+                        if (specialPrice < price) {
+                            return true;
+                        }
                     }
                 }
             }
