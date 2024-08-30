@@ -181,16 +181,68 @@ class Data
     }
 
     /**
-     * Check if product has special price
+     * Check if product has a valid special price
      * 
+     * @param \Magento\Catalog\Model\Product $product
      * @return boolean
      */
     public function hasSpecialPrice($product) {
-        if (
-            $product->getSpecialPrice() &&
-            $product->getSpecialPrice() < $product->getPrice()
-        ) return true;
-        return false;
+        // Check if the product is configurable
+        if ($product->getTypeId() === 'configurable') {
+            // Get associated simple products
+            $associatedProducts = $product->getTypeInstance()->getUsedProducts($product);
+            
+            foreach ($associatedProducts as $simpleProduct) {
+                if ($this->isSpecialPriceValid($simpleProduct)) {
+                    return true;
+                }
+            }
+        } else {
+            // For simple products, check directly
+            return $this->isSpecialPriceValid($product);
+        }
+
+        return false; // No valid special price found
+    }
+
+    /**
+     * Check if a simple product has a valid special price
+     * 
+     * @param \Magento\Catalog\Model\Product $product
+     * @return boolean
+     */
+    private function isSpecialPriceValid($product) {
+        $specialPrice = $product->getSpecialPrice();
+        $regularPrice = $product->getPrice();
+
+        // Check if special price is set and less than regular price
+        if ($specialPrice && $specialPrice < $regularPrice) {
+            // Get special from and to dates
+            $specialFromDate = $product->getSpecialFromDate();
+            $specialToDate = $product->getSpecialToDate();
+
+            // Get current date
+            $currentDate = new \DateTime();
+
+            // Check if special price is within the date range
+            if ($specialFromDate) {
+                $fromDate = new \DateTime($specialFromDate);
+                if ($currentDate < $fromDate) {
+                    return false; // Special price not yet active
+                }
+            }
+
+            if ($specialToDate) {
+                $toDate = new \DateTime($specialToDate);
+                if ($currentDate > $toDate) {
+                    return false; // Special price has expired
+                }
+            }
+
+            return true; // Valid special price
+        }
+
+        return false; // No valid special price
     }
 
     /**

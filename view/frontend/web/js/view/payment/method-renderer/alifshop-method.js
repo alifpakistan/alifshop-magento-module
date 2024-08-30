@@ -61,23 +61,34 @@ define([
                 return false; // No items in the cart
             }
         
+            var currentDate = new Date(); // Get the current date
+        
             for (var i = 0; i < items.length; i++) {
                 var item = items[i];
-                if(item.product_type === 'configurable') {
-                    if(parseFloat(item.price) !== parseFloat(item.product.price)) return true;
+        
+                if (item.product_type === 'configurable') {
+                    if (parseFloat(item.price) !== parseFloat(item.product.price)) return true;
                 } else {
                     var product = item.product || item;
+        
                     if (product.special_price && product.hasOwnProperty('special_price')) {
                         var specialPrice = parseFloat(product.special_price);
                         var price = parseFloat(product.price);
-            
-                        if (specialPrice < price) {
-                            return true;
+        
+                        // Check special price validity based on dates
+                        var specialFromDate = new Date(product.special_from_date);
+                        var specialToDate = new Date(product.special_to_date);
+        
+                        // Validate special price based on the date range
+                        if (currentDate >= specialFromDate && currentDate <= specialToDate) {
+                            if (specialPrice < price) {
+                                return true; // Special price is valid
+                            }
                         }
                     }
                 }
             }
-            return false;
+            return false; // No valid special price found
         },
 
         getIconHtml: function () {
