@@ -1,4 +1,5 @@
 define([
+    'jquery',
     'Magento_Checkout/js/view/payment/default',
     'Magento_Catalog/js/price-utils',
     'Magento_Checkout/js/model/quote',
@@ -9,7 +10,7 @@ define([
     'mage/translate',
     'Magento_Checkout/js/action/get-payment-information',
     'Magento_Checkout/js/model/full-screen-loader'
-], function (Component, priceUtils, quote, urlBuilder, storage, errorProcessor, messageContainer, $t, getPaymentInformationAction, fullScreenLoader) {
+], function ($, Component, priceUtils, quote, urlBuilder, storage, errorProcessor, messageContainer, $t, getPaymentInformationAction, fullScreenLoader) {
     'use strict';
 
     return Component.extend({
@@ -54,41 +55,24 @@ define([
         },
 
         getHasSpecialPrice: function() {
-            var items = quote.getItems();
-        
-            // Check if items exist and are not empty
-            if (!items || items.length === 0) {
-                return false; // No items in the cart
-            }
-        
-            var currentDate = new Date(); // Get the current date
-        
-            for (var i = 0; i < items.length; i++) {
-                var item = items[i];
-        
-                if (item.product_type === 'configurable') {
-                    if (parseFloat(item.price) !== parseFloat(item.product.price)) return true;
-                } else {
-                    var product = item.product || item;
-        
-                    if (product.special_price && product.hasOwnProperty('special_price')) {
-                        var specialPrice = parseFloat(product.special_price);
-                        var price = parseFloat(product.price);
-        
-                        // Check special price validity based on dates
-                        var specialFromDate = new Date(product.special_from_date);
-                        var specialToDate = new Date(product.special_to_date);
-        
-                        // Validate special price based on the date range
-                        if (currentDate >= specialFromDate && currentDate <= specialToDate) {
-                            if (specialPrice < price) {
-                                return true; // Special price is valid
-                            }
-                        }
+            let hasSpecialPrice = false;
+            $.ajax({
+                url: '/alifshop/check/specialprice',
+                type: 'GET',
+                dataType: 'json',
+                async: false,
+                success: function (response) {
+                    if (response.has_special_price) {
+                        hasSpecialPrice = true;
                     }
+                },
+                error: function () {
+                    console.error('Error checking for special price.');
+                    return false;
                 }
-            }
-            return false; // No valid special price found
+            });
+
+            return hasSpecialPrice;
         },
 
         getIconHtml: function () {
